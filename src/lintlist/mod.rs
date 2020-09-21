@@ -81,6 +81,13 @@ pub static ref ALL_LINTS: Vec<Lint> = vec![
         module: "methods",
     },
     Lint {
+        name: "blacklisted_methods",
+        group: "nursery",
+        desc: "default lint description",
+        deprecation: None,
+        module: "blacklisted_methods",
+    },
+    Lint {
         name: "blacklisted_name",
         group: "style",
         desc: "usage of a blacklisted/placeholder name",

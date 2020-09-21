@@ -159,6 +159,7 @@ mod atomic_ordering;
 mod attrs;
 mod await_holding_lock;
 mod bit_mask;
+mod blacklisted_method;
 mod blacklisted_name;
 mod blocks_in_if_conditions;
 mod booleans;
@@ -502,6 +503,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &bit_mask::BAD_BIT_MASK,
         &bit_mask::INEFFECTIVE_BIT_MASK,
         &bit_mask::VERBOSE_BIT_MASK,
+        &blacklisted_method::BLACKLISTED_METHOD,
         &blacklisted_name::BLACKLISTED_NAME,
         &blocks_in_if_conditions::BLOCKS_IN_IF_CONDITIONS,
         &booleans::LOGIC_BUG,
@@ -1117,6 +1119,8 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| box async_yields_async::AsyncYieldsAsync);
     store.register_late_pass(|| box manual_strip::ManualStrip);
     store.register_late_pass(|| box utils::internal_lints::MatchTypeOnDiagItem);
+    let blacklisted_methods = blacklisted_method::BlacklistedMethod::parse_blacklist(conf.blacklisted_methods.clone());
+    store.register_late_pass(move || box blacklisted_method::BlacklistedMethod::new(blacklisted_methods.clone()));
 
     store.register_group(true, "clippy::restriction", Some("clippy_restriction"), vec![
         LintId::of(&arithmetic::FLOAT_ARITHMETIC),
@@ -1803,6 +1807,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
 
     store.register_group(true, "clippy::nursery", Some("clippy_nursery"), vec![
         LintId::of(&attrs::EMPTY_LINE_AFTER_OUTER_ATTR),
+        LintId::of(&blacklisted_method::BLACKLISTED_METHOD),
         LintId::of(&cognitive_complexity::COGNITIVE_COMPLEXITY),
         LintId::of(&fallible_impl_from::FALLIBLE_IMPL_FROM),
         LintId::of(&floating_point_arithmetic::IMPRECISE_FLOPS),

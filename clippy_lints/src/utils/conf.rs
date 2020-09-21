@@ -164,6 +164,8 @@ define_Conf! {
     (max_fn_params_bools, "max_fn_params_bools": u64, 3),
     /// Lint: WILDCARD_IMPORTS. Whether to allow certain wildcard imports (prelude, super in tests).
     (warn_on_all_wildcard_imports, "warn_on_all_wildcard_imports": bool, false),
+    /// Lint: BLACKLISTED_METHOD. The list of methods to lint about. Takes the format `TYPE::METHOD`.
+    (blacklisted_methods, "blacklisted_methods": Vec<String>, ["Foo::banned_method", "Baz::banned_method"].iter().map(ToString::to_string).collect()),
 }
 
 impl Default for Conf {
