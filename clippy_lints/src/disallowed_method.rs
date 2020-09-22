@@ -33,8 +33,16 @@ pub struct DisallowedMethod {
 }
 
 impl DisallowedMethod {
-    pub fn new() -> Self {
-        Self { disallowed: FxHashMap::default() }
+    pub fn new(disallowed: FxHashMap<String, String>) -> Self {
+        Self { disallowed }
+    }
+
+    pub fn parse_disallowed_methods(blacklist: Vec<String>) -> io::Result<FxHashMap<String, String>> {
+        let mut h = FxHashMap::default();
+
+        for method in blacklist {
+
+        }
     }
 }
 

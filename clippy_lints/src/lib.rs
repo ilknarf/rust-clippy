@@ -41,7 +41,7 @@ extern crate rustc_target;
 extern crate rustc_trait_selection;
 extern crate rustc_typeck;
 
-use rustc_data_structures::fx::FxHashSet;
+use rustc_data_structures::fx::{FxHashSet, FxHashMap};
 use rustc_lint::LintId;
 use rustc_session::Session;
 
@@ -1119,8 +1119,11 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| box async_yields_async::AsyncYieldsAsync);
     store.register_late_pass(|| box manual_strip::ManualStrip);
     store.register_late_pass(|| box utils::internal_lints::MatchTypeOnDiagItem);
-    let disallowed_methods = conf.disallowed_methods.clone();
-    store.register_late_pass(move || box disallowed_method::DisallowedMethod::new());
+    let disallowed_methods =  match disallowed_method::DisallowedMethod::parse_disallowed_methods(conf.disallowed_methods.clone()) {
+        Ok(map) => map,
+        Err(_) => FxHashMap::default(),
+    };
+    store.register_late_pass(move || box disallowed_method::DisallowedMethod::new(disallowed_methods));
 
 
     store.register_group(true, "clippy::restriction", Some("clippy_restriction"), vec![
