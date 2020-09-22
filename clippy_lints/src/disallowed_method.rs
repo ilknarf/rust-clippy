@@ -1,6 +1,6 @@
 extern crate regex;
 
-use rustc_data_structures::fx::FxHashMap;
+use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_lint::{LateLintPass, LateContext};
 use rustc_session::{impl_lint_pass, declare_tool_lint};
 use rustc_hir::*;
@@ -33,23 +33,39 @@ declare_clippy_lint! {
 
 #[derive(Clone, Debug)]
 pub struct DisallowedMethod {
-    disallowed: FxHashMap<String, String>,
+    disallowed: FxHashMap<String, FxHashSet<String>>,
 }
 
 impl DisallowedMethod {
-    pub fn new(disallowed: FxHashMap<String, String>) -> Self {
+    pub fn new(disallowed: FxHashMap<String, FxHashSet<String>>) -> Self {
         Self { disallowed }
     }
 
-    pub fn parse_disallowed_methods(blacklist: Vec<String>) -> FxHashMap<String, String> {
+    pub fn parse_disallowed_methods(blacklist: Vec<String>) -> FxHashMap<String, FxHashSet<String>> {
         let mut h = FxHashMap::default();
-        let re = Regex::new(r"(.+)::\{*(.*)}*").unwrap();
+        let re = Regex::new(r"(.+)::(.*)");
 
         for method in blacklist {
-            re.
+            match re.captures_iter(*method).next().unwrap() {
+                Some(caps) => {
+                    let method_type = caps.get(0).unwrap();
+                    let method_name = caps.get(1).unwrap();
+
+                    let s = match h.get(method_type) {
+                        Some(set) => set,
+                        None => {
+                            h.insert(method_type, FxHashSet::default());
+                            h.get(method_type).unwrap()
+                        },
+                    };
+
+                    s.insert(method_name);
+                },
+                None => (),
+            }
         }
 
-        Ok(h)
+        h
     }
 }
 
