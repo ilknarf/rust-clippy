@@ -4,6 +4,7 @@ use rustc_data_structures::fx::FxHashMap;
 use rustc_lint::{LateLintPass, LateContext};
 use rustc_session::{impl_lint_pass, declare_tool_lint};
 use rustc_hir::*;
+use if_chain::if_chain;
 use regex::Regex;
 
 declare_clippy_lint! {
@@ -70,4 +71,16 @@ impl DisallowedMethod {
 
 impl_lint_pass!(DisallowedMethod => [DISALLOWED_METHOD]);
 
-impl LateLintPass<'_> for DisallowedMethod {}
+impl LateLintPass<'_> for DisallowedMethod {
+        fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) {
+        if_chain! {
+            // Check our expr is calling a method
+            if let hir::ExprKind::MethodCall(path, _, _args, _) = &expr.kind;
+            // Check the name of this method is `some_method`
+            if self.disallowed.contains_key(stringify!(path.ident.name));
+            then {
+                // ...
+            }
+        }
+    }
+}
