@@ -1,10 +1,9 @@
 extern crate regex;
 
-use rustc_data_structures::fx::{FxHashMap, FxHashSet};
+use rustc_data_structures::fx::FxHashMap;
 use rustc_lint::{LateLintPass, LateContext};
 use rustc_session::{impl_lint_pass, declare_tool_lint};
 use rustc_hir::*;
-use std::io;
 use regex::Regex;
 
 declare_clippy_lint! {
@@ -33,33 +32,33 @@ declare_clippy_lint! {
 
 #[derive(Clone, Debug)]
 pub struct DisallowedMethod {
-    disallowed: FxHashMap<String, FxHashSet<String>>,
+    disallowed: FxHashMap<String, Vec<String>>,
 }
 
 impl DisallowedMethod {
-    pub fn new(disallowed: FxHashMap<String, FxHashSet<String>>) -> Self {
+    pub fn new(disallowed: FxHashMap<String, Vec<String>>) -> Self {
         Self { disallowed }
     }
 
-    pub fn parse_disallowed_methods(blacklist: Vec<String>) -> FxHashMap<String, FxHashSet<String>> {
-        let mut h = FxHashMap::default();
-        let re = Regex::new(r"(.+)::(.*)");
+    pub fn parse_disallowed_methods(blacklist: Vec<String>) -> FxHashMap<String, Vec<String>> {
+        let mut h: FxHashMap<String, Vec<String>> = FxHashMap::default();
+        let re = Regex::new(r"(.+)::(.*)").unwrap();
 
-        for method in blacklist {
-            match re.captures_iter(*method).next().unwrap() {
+        for method in &blacklist {
+            match re.captures_iter(method).next() {
                 Some(caps) => {
-                    let method_type = caps.get(0).unwrap();
-                    let method_name = caps.get(1).unwrap();
+                    let method_type = caps.get(0).unwrap().as_str().to_string();
+                    let method_name = caps.get(1).unwrap().as_str().to_string();
 
-                    let s = match h.get(method_type) {
+                    let s = match h.get_mut(&method_type) {
                         Some(set) => set,
                         None => {
-                            h.insert(method_type, FxHashSet::default());
-                            h.get(method_type).unwrap()
+                            h.insert(method_type.clone(), Vec::new());
+                            h.get_mut(&method_type).unwrap()
                         },
                     };
 
-                    s.insert(method_name);
+                    s.push(method_name);
                 },
                 None => (),
             }
