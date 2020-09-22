@@ -1,7 +1,11 @@
+extern crate regex;
+
 use rustc_data_structures::fx::FxHashMap;
 use rustc_lint::{LateLintPass, LateContext};
 use rustc_session::{impl_lint_pass, declare_tool_lint};
 use rustc_hir::*;
+use std::io;
+use regex::Regex;
 
 declare_clippy_lint! {
     /// **What it does:** Lints for specific methods defined in clippy.toml
@@ -37,12 +41,15 @@ impl DisallowedMethod {
         Self { disallowed }
     }
 
-    pub fn parse_disallowed_methods(blacklist: Vec<String>) -> io::Result<FxHashMap<String, String>> {
+    pub fn parse_disallowed_methods(blacklist: Vec<String>) -> FxHashMap<String, String> {
         let mut h = FxHashMap::default();
+        let re = Regex::new(r"(.+)::\{*(.*)}*").unwrap();
 
         for method in blacklist {
-
+            re.
         }
+
+        Ok(h)
     }
 }
 
