@@ -1,25 +1,26 @@
 #![warn(clippy::disallowed_method)]
+#![allow(clippy::no_effect)]
 
 struct Foo;
 
 impl Foo {
-    fn bad_method() {}
+    fn bad_method(self) {}
 }
 
 struct ImplStruct;
 
-trait Baz{
-    fn bad_method();
+trait Baz {
+    fn bad_method(self);
 }
 
 impl Baz for ImplStruct {
-    fn bad_method() {}
+    fn bad_method(self) {}
 }
 
 struct NormalStruct;
 
 impl NormalStruct {
-    fn bad_method() {}
+    fn bad_method(self) {}
 }
 
 struct AttrStruct {
