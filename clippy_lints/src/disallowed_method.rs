@@ -1,11 +1,13 @@
+use rustc_data_structures::fx::FxHashMap;
 use rustc_lint::{LateLintPass, LateContext};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::{impl_lint_pass, declare_tool_lint};
 use rustc_hir::*;
 
 declare_clippy_lint! {
-    /// **What it does:**
+    /// **What it does:** Lints for specific methods defined in clippy.toml
     ///
-    /// **Why is this bad?**
+    /// **Why is this bad?** Some methods are undesirable in certain contexts,
+    /// and it would be beneficial to lint for them as needed.
     ///
     /// **Known problems:** None.
     ///
@@ -13,16 +15,29 @@ declare_clippy_lint! {
     ///
     /// ```rust
     /// // example code where clippy issues a warning
+    /// Foo.bad_method();
     /// ```
     /// Use instead:
     /// ```rust
     /// // example code which does not raise clippy warning
+    /// GoodStruct.bad_method();
     /// ```
     pub DISALLOWED_METHOD,
     nursery,
     "default lint description"
 }
 
-declare_lint_pass!(DisallowedMethod => [DISALLOWED_METHOD]);
+#[derive(Clone, Debug)]
+pub struct DisallowedMethod {
+    disallowed: FxHashMap<String, String>,
+}
+
+impl DisallowedMethod {
+    pub fn new() -> Self {
+        Self { disallowed: FxHashMap::default() }
+    }
+}
+
+impl_lint_pass!(DisallowedMethod => [DISALLOWED_METHOD]);
 
 impl LateLintPass<'_> for DisallowedMethod {}

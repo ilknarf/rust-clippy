@@ -9,6 +9,10 @@ impl Foo {
 struct ImplStruct;
 
 trait Baz{
+    fn bad_method();
+}
+
+impl Baz for ImplStruct {
     fn bad_method() {}
 }
 
