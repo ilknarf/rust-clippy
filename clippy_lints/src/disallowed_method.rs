@@ -1,11 +1,9 @@
-extern crate regex;
+use crate::utils::{trait_ref_of_method, span_lint};
 
-use rustc_data_structures::fx::FxHashMap;
+use rustc_data_structures::fx::FxHashSet;
 use rustc_lint::{LateLintPass, LateContext};
 use rustc_session::{impl_lint_pass, declare_tool_lint};
-use rustc_hir::*;
-use if_chain::if_chain;
-use regex::Regex;
+use rustc_hir as hir;
 
 declare_clippy_lint! {
     /// **What it does:** Lints for specific methods defined in clippy.toml
@@ -28,59 +26,33 @@ declare_clippy_lint! {
     /// ```
     pub DISALLOWED_METHOD,
     nursery,
-    "default lint description"
+    "use of a disallowed method"
 }
 
 #[derive(Clone, Debug)]
 pub struct DisallowedMethod {
-    disallowed: FxHashMap<String, Vec<String>>,
+    disallowed: FxHashSet<String>,
 }
 
 impl DisallowedMethod {
-    pub fn new(disallowed: FxHashMap<String, Vec<String>>) -> Self {
+    pub fn new(disallowed: FxHashSet<String>) -> Self {
         Self { disallowed }
-    }
-
-    pub fn parse_disallowed_methods(blacklist: Vec<String>) -> FxHashMap<String, Vec<String>> {
-        let mut h: FxHashMap<String, Vec<String>> = FxHashMap::default();
-        let re = Regex::new(r"(.+)::(.*)").unwrap();
-
-        for method in &blacklist {
-            match re.captures_iter(method).next() {
-                Some(caps) => {
-                    let method_type = caps.get(0).unwrap().as_str().to_string();
-                    let method_name = caps.get(1).unwrap().as_str().to_string();
-
-                    let s = match h.get_mut(&method_type) {
-                        Some(set) => set,
-                        None => {
-                            h.insert(method_type.clone(), Vec::new());
-                            h.get_mut(&method_type).unwrap()
-                        },
-                    };
-
-                    s.push(method_name);
-                },
-                None => (),
-            }
-        }
-
-        h
     }
 }
 
 impl_lint_pass!(DisallowedMethod => [DISALLOWED_METHOD]);
 
 impl LateLintPass<'_> for DisallowedMethod {
-        fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) {
-        if_chain! {
-            // Check our expr is calling a method
-            if let hir::ExprKind::MethodCall(path, _, _args, _) = &expr.kind;
-            // Check the name of this method is `some_method`
-            if self.disallowed.contains_key(stringify!(path.ident.name));
-            then {
-                // ...
-            }
+    fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ hir::Expr<'_>) {
+        let p = trait_ref_of_method(cx, expr.hir_id).unwrap().path;
+        let s = format!("{:?}", p);
+        if !self.disallowed.contains(&s) {
+            span_lint(
+                cx,
+                DISALLOWED_METHOD,
+                expr.span,
+                &format!("use of a disallowed method `{}`", s),
+            )
         }
     }
 }
