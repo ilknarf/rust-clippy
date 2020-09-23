@@ -41,7 +41,7 @@ extern crate rustc_target;
 extern crate rustc_trait_selection;
 extern crate rustc_typeck;
 
-use rustc_data_structures::fx::{FxHashSet, FxHashMap};
+use rustc_data_structures::fx::FxHashSet;
 use rustc_lint::LintId;
 use rustc_session::Session;
 
