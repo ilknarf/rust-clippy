@@ -1,11 +1,5 @@
 #![warn(clippy::disallowed_method)]
-#![allow(clippy::no_effect)]
-
-struct Foo;
-
-impl Foo {
-    fn bad_method(self) {}
-}
+#![allow(clippy::no_effect, clippy::many_single_char_names)]
 
 struct ImplStruct;
 
@@ -14,6 +8,22 @@ trait Baz {
 }
 
 impl Baz for ImplStruct {
+    fn bad_method(self) {}
+}
+
+struct StaticStruct;
+
+trait Quux {
+    fn bad_method();
+}
+
+impl Quux for StaticStruct {
+    fn bad_method() {}
+}
+
+struct Foo;
+
+impl Foo {
     fn bad_method(self) {}
 }
 
@@ -28,15 +38,20 @@ struct AttrStruct {
 }
 
 fn main() {
-    let f = Foo;
     let b = ImplStruct;
+    let c = ImplStruct;
+    let f = Foo;
     let n = NormalStruct;
     let a = AttrStruct{ bad_method: 5 };
 
     // lint these
-    f.bad_method();
     b.bad_method();
+    c.bad_method();
     // these are good
+    // good because not a method call (ExprKind => Call)
+    StaticStruct::bad_method();
+    // good because Foo isn't a trait
+    f.bad_method();
     n.bad_method();
     a.bad_method;
 }

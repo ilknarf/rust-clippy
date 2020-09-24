@@ -1,0 +1,16 @@
+error: Use of a disallowed trait method `bad_method` of `disallowed_method::Baz`
+  --> $DIR/disallowed_method.rs:48:5
+   |
+LL |     b.bad_method();
+   |     ^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::disallowed-method` implied by `-D warnings`
+
+error: Use of a disallowed trait method `bad_method` of `disallowed_method::Baz`
+  --> $DIR/disallowed_method.rs:49:5
+   |
+LL |     c.bad_method();
+   |     ^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+

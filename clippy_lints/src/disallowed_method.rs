@@ -40,13 +40,14 @@ impl DisallowedMethod {
         let mut disallowed_map: FxHashMap<String, Vec<Vec<Symbol>>> = FxHashMap::default();
 
         disallowed.iter().for_each(|method| {
-            let v: Vec<_> = method.rsplit("::")
-                .collect();
+            let mut v: Vec<_> = method.rsplit("::").collect();
+            v.reverse();
 
                 // ignore invalid inputs
                 if v.len() > 1 {
-                    let key = v[0].to_string();
-                    let symbols: Vec<_> = v[1..].iter().map(|s| Symbol::intern(s)).collect();
+                    let l = v.len() - 1;
+                    let key = v[l].to_string();
+                    let symbols: Vec<_> = v[..l].iter().map(|s| Symbol::intern(s)).collect();
                     // may be multiple traits with the same method name
                     if let Some(paths) = disallowed_map.get_mut(&key) {
                         paths.push(symbols);
@@ -67,14 +68,14 @@ impl_lint_pass!(DisallowedMethod => [DISALLOWED_METHOD]);
 
 impl <'tcx> LateLintPass<'tcx> for DisallowedMethod {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-
         if let ExprKind::MethodCall(path, _, _args, _) = &expr.kind {
             let method_name = path.ident.name.to_ident_string();
             if let Some(paths) = self.disallowed.get_mut(&method_name) {
+                // get trt_id
                 let def_id = cx.typeck_results().type_dependent_def_id(expr.hir_id).unwrap();
                 let trt_id = cx.tcx.trait_of_item(def_id);
-                dbg!(&method_name, &path);
 
+                // check possible paths
                 paths.iter().for_each(|path| {
                     if trt_id.map_or(false, |trt_id| cx.match_def_path(trt_id, &path)) {
                         span_lint(
@@ -82,7 +83,7 @@ impl <'tcx> LateLintPass<'tcx> for DisallowedMethod {
                             DISALLOWED_METHOD,
                             expr.span,
                             &format!(
-                            "Use of a disallowed trait method {} of {}",
+                            "Use of a disallowed trait method `{}` of `{}`",
                             method_name,
                              path.iter().map(|s| s.to_ident_string()).collect::<Vec<_>>().join("::"))
                         );
