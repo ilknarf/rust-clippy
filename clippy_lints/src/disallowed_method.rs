@@ -18,16 +18,16 @@ declare_clippy_lint! {
     ///
     /// ```rust
     /// // example code where clippy issues a warning
-    /// foo.bad_method(); // trait Foo
+    /// foo.bad_method(); // Foo is disallowed
     /// ```
     /// Use instead:
     /// ```rust
     /// // example code which does not raise clippy warning
-    /// GoodStruct::bad_method(); // no disallowed traits
+    /// GoodStruct.bad_method(); // not disallowed
     /// ```
     pub DISALLOWED_METHOD,
     nursery,
-    "default lint description"
+    "used disallowed method call",
 }
 
 #[derive(Clone, Debug)]
