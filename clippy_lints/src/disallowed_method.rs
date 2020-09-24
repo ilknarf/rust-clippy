@@ -27,7 +27,7 @@ declare_clippy_lint! {
     /// ```
     pub DISALLOWED_METHOD,
     nursery,
-    "used disallowed method call",
+    "used disallowed method call"
 }
 
 #[derive(Clone, Debug)]
